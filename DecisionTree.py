@@ -43,4 +43,47 @@ def splitData(data, splitColumn, splitValue):
 
     return equal_Data, notEqual_Data
 
+def calcEntropy(data):
+
+    labelPerColumn = data[:, -1]
+    _, counts = np.unique(labelPerColumn, return_counts=True)
+
+    probabilities = counts / counts.sum()
+    Entropy = sum(probabilities * -np.log2(probabilities))
+
+    return Entropy
+
+
+def calcOverallEntropy(equal_Data, notEqual_Data):
+
+    n = len(equal_Data) + len(notEqual_Data)
+    p_data_equal = len(equal_Data) / n
+    p_data_notEqual = len(notEqual_Data) / n
+
+    overall_entropy = (p_data_equal * calcEntropy(equal_Data) + p_data_notEqual * calcEntropy(notEqual_Data))
+
+    return overall_entropy
+
+
+def determineOptimumSplit(data, uniqueSplits):
+
+    overallEntropy = 1000
+    for columnIndex in range(len(uniqueSplits)):
+        for value in uniqueSplits[columnIndex]:
+            #value= uniqueSplits[columnIndex][i]
+            equal_Data, notEqual_Data = splitData(data, splitColumn= columnIndex, splitValue=value)
+            currentOverallEntropy = calcOverallEntropy(equal_Data, notEqual_Data)
+
+            if currentOverallEntropy <= overallEntropy:
+                overallEntropy = currentOverallEntropy
+                bestSplit_Column = columnIndex
+                bestSplit_Value = value
+
+    return bestSplit_Column, bestSplit_Value
+
+
+#print(determineOptimumSplit(data,retrieveUniqueSplits(data)))
+
+
+
 
