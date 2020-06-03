@@ -1,5 +1,30 @@
 import pandas as pd
 import numpy as np
+from datetime import datetime
+import time
+
+class Node:
+
+    def __init__(self, data):
+
+        self.left = None
+        self.right = None
+        self.data = data
+
+
+    def PrintTree(self,level = 0):
+        strlevel = "  "*level+"⤷"
+        if(self!=None):
+            if not isinstance(self,Node):
+                print(strlevel,self)
+            else:
+                print(strlevel,self.data)
+                level+=1
+                Node.PrintTree(self.left,level)
+                Node.PrintTree(self.right,level)
+           
+            
+            
 
 # Preparing data
 dataFrame = pd.read_csv("sample_train.csv")
@@ -146,7 +171,7 @@ def classify_example(example, tree):
     residual_tree = answer
     return classify_example(example, residual_tree)
 
-# using the sample_dev.xml 
+# using the sample_dev.csv 
 def calcAccuracy(tree):
     
     dataFrame = pd.read_csv("sample_dev.csv")
@@ -157,5 +182,49 @@ def calcAccuracy(tree):
     return accuracy
 
 
+#using sample_test.csv
+def generatePredictionFile(tree):
+        dataFrame = pd.read_csv("sample_test.csv")
+        dataFrame = dataFrame.drop("reviews.text", axis=1)
+        np.savetxt(r'test_prediction',dataFrame.apply(classify_example, axis=1, args=(tree,)),fmt='%s')
 
+def prepareInput(dataFrame):
+    values = []
 
+    values.append(input().split())
+# #to enter feature value one by one
+#     values.append([])
+#     for feature in dataFrame.columns:
+#         if(feature != "rating"):
+#             values[0].append(input("{}: ".format(feature)))
+#         else:  values[0].append("-1")
+    
+    df = pd.DataFrame(values,columns =dataFrame.columns)
+   
+    df = df.drop(df.columns[-1], axis=1)
+    
+    return df
+
+def runProject():
+    timeBeforeCalc = datetime.now().time()
+    start_time = time.time()
+    timeBeforeCalc = timeBeforeCalc.strftime("%H:%M:%S")
+    print("Starting Time ", timeBeforeCalc)
+    tree = decisionTree(dataFrame, maxDepth=7)
+    accuracy = calcAccuracy(tree)
+    timeAfterCalc = datetime.now()
+    timeAfterCalc = timeAfterCalc.strftime("%H:%M:%S")
+    print("Ending Time ", timeAfterCalc)
+    print("Training Time = {:.2f} seconds".format(time.time() - start_time))
+    print("Accuracy: {:.2f}%".format(100 * accuracy))
+    print("Decision Tree")
+    tree.PrintTree()
+    generatePredictionFile(tree)
+
+    a = input("do you want to enter review? \n No = 0 \n Yes = 1 \n")
+    if a == "1":
+        print("enter only 0 or 1")
+        df = prepareInput(dataFrame)
+        print(classify_example(df, tree))
+
+runProject()
